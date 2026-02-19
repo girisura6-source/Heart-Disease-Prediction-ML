@@ -1,56 +1,59 @@
-import numpy as np
 import streamlit as st
 import pickle
+import os
+import numpy as np
 
-# Load model
-model = pickle.load(open("heart_model.pkl", "rb"))
+# ----------------------------
+# Model path
+# ----------------------------
+MODEL_PATH = "heart_model.pkl"
 
-st.title("❤️ Heart Disease Prediction System")
+# ----------------------------
+# Load model safely
+# ----------------------------
+def load_model(path):
+    if not os.path.exists(path):
+        st.error(f"Model file not found at {path}")
+        return None
+    try:
+        with open(path, "rb") as f:
+            model = pickle.load(f)
+        return model
+    except ModuleNotFoundError as e:
+        st.error(f"Module missing: {e}. Add it to requirements.txt")
+        return None
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
 
-# ----------- Input Fields ------------
+model = load_model(MODEL_PATH)
 
-age = st.number_input("Age", min_value=1, max_value=120, value=45)
+# ----------------------------
+# Streamlit UI
+# ----------------------------
+st.title("💓 Heart Disease Prediction")
 
-sex = st.selectbox("Sex", ["Male", "Female"])
-sex = 1 if sex == "Male" else 0
+if model:
+    st.subheader("Enter your health details:")
 
-cp = st.selectbox("Chest Pain Type (0-3)", [0,1,2,3])
+    # Only essential features for simplicity
+    age = st.number_input("Age", 1, 120, 30)
+    sex = st.selectbox("Sex (0 = Female, 1 = Male)", [0, 1])
+    cp = st.number_input("Chest Pain Type (0-3)", 0, 3, 1)
+    trestbps = st.number_input("Resting Blood Pressure", 50, 250, 120)
+    chol = st.number_input("Serum Cholesterol", 100, 600, 200)
+    thalach = st.number_input("Max Heart Rate Achieved", 50, 250, 150)
+    exang = st.selectbox("Exercise Induced Angina (0 = No, 1 = Yes)", [0, 1])
 
-trestbps = st.number_input("Resting Blood Pressure", min_value=50, max_value=250)
+    if st.button("Predict"):
+        input_data = np.array([[age, sex, cp, trestbps, chol, thalach, exang]])
+        try:
+            prediction = model.predict(input_data)
+            st.success("✅ Heart Disease" if prediction[0] == 1 else "❌ No Heart Disease")
+        except Exception as e:
+            st.error(f"Prediction error: {e}")
 
-chol = st.number_input("Serum Cholesterol (mg/dl)", min_value=100, max_value=600)
+else:
+    st.warning("Model not loaded. Check model path or logs.")
 
-fbs = st.selectbox("Fasting Blood Sugar > 120 mg/dl", ["Yes","No"])
-fbs = 1 if fbs == "Yes" else 0
-
-restecg = st.selectbox("Resting ECG Result (0,1,2)", [0,1,2])
-
-thalach = st.number_input("Maximum Heart Rate Achieved", min_value=50, max_value=250)
-
-exang = st.selectbox("Exercise Induced Angina", ["Yes","No"])
-exang = 1 if exang == "Yes" else 0
-
-oldpeak = st.number_input("Oldpeak (ST depression)", format="%.1f")
-
-slope = st.selectbox("Slope (0,1,2)", [0,1,2])
-
-ca = st.selectbox("Number of Major Vessels (0-3)", [0,1,2,3])
-
-thal = st.selectbox("Thalassemia (0=Normal,1=Fixed,2=Reversible)", [0,1,2])
-
-# -------- Prediction Button --------
-
-if st.button("Predict Heart Disease"):
-    input_data = np.array([
-        age, sex, cp, trestbps, chol, fbs,
-        restecg, thalach, exang, oldpeak,
-        slope, ca, thal
-    ]).reshape(1, -1)
-
-    prediction = model.predict(input_data)
-
-    if prediction[0] == 1:
-        st.error("⚠️ Person has Heart Disease")
-    else:
-        st.success("✅ Person does NOT have Heart Disease")
       
