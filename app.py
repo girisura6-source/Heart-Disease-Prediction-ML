@@ -3,7 +3,11 @@ import streamlit as st
 import pickle
 
 # Load model
-model = pickle.load(open("heart_model.pkl", "rb"))
+import os
+import pickle
+
+model_path = os.path.join(os.getcwd(), "heart_model.pkl")
+model = pickle.load(open(model_path, "rb"))
 
 st.title("❤️ Heart Disease Prediction System")
 
