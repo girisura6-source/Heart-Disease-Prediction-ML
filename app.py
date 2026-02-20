@@ -4,10 +4,19 @@ import pickle
 import os
 import numpy as np
 
+<<<<<<< HEAD
 # ----------------------------
 # Step 1: Define the model path
 # ----------------------------
 MODEL_PATH = "heart_model.pkl"  # Make sure this file is in the same folder as app.py
+=======
+# Load model
+import os
+import pickle
+
+model_path = os.path.join(os.getcwd(), "heart_model.pkl")
+model = pickle.load(open(model_path, "rb"))
+>>>>>>> 85b462088c2cb7502550e5c373c530919dd9866c
 
 # ----------------------------
 # Step 2: Load the model safely
